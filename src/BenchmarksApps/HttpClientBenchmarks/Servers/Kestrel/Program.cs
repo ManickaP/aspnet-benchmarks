@@ -3,6 +3,7 @@ using System.CommandLine.Invocation;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.Hosting;
 
 namespace HttpClientBenchmarks;
 
@@ -74,7 +75,7 @@ class Program
                     httpsOptions.ServerCertificate = cert;
                 }
             });
-            serverOptions.ConfigureEndpointDefaults(listenOptions => 
+            serverOptions.ConfigureEndpointDefaults(listenOptions =>
             {
                 listenOptions.Protocols = s_options.HttpVersion switch
                 {
@@ -84,6 +85,10 @@ class Program
                     _ => throw new ArgumentException("Unsupported HTTP version: " + s_options.HttpVersion)
                 };
             });
+        });
+        builder.WebHost.UseQuic(options =>
+        {
+            options.MaxBidirectionalStreamCount = ushort.MaxValue;
         });
         var app = builder.Build();
 
